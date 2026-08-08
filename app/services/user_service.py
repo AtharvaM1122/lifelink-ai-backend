@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 
 from app.models.users import User
 from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate, UserUpdate
-from app.security.password import hash_password
+from app.schemas.user import UserCreate, UserUpdate, UserLogin
+from app.security.password import hash_password, verify_password
+from app.security.jwt import create_access_token
 
 
 class UserService:
@@ -101,4 +102,40 @@ class UserService:
 
         return {
             "message": "User deleted successfully."
+        }
+
+    @staticmethod
+    def login_user(db: Session, login_data: UserLogin):
+
+        # Find user by email
+        user = UserRepository.get_by_email(db, login_data.email)
+
+        # Invalid email
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password."
+            )
+
+        # Verify password
+        if not verify_password(
+            login_data.password,
+            user.password_hash
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password."
+            )
+
+        # Create JWT token
+        access_token = create_access_token(
+            data={
+                "sub": str(user.user_id),
+                "email": user.email
+            }
+        )
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer"
         }

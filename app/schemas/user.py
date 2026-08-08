@@ -18,6 +18,13 @@ class UserCreate(BaseModel):
     blood_group: Optional[str] = None
     profile_photo: Optional[str] = None
 
+# ==========================
+# Login User
+# ==========================
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str  
+
 
 # ==========================
 # Update User
@@ -49,4 +56,6 @@ class UserResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    
+class Token(BaseModel):
+    access_token: str
+    token_type: str

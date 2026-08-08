@@ -2,8 +2,16 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.schemas.user import UserCreate, UserResponse, UserUpdate
+from app.schemas.user import (
+    UserCreate,
+    UserResponse,
+    UserUpdate,
+    UserLogin,
+    Token
+)
 from app.services.user_service import UserService
+from app.security.dependencies import get_current_user_id
+from fastapi import APIRouter, Depends, status, HTTPException
 
 router = APIRouter(
     prefix="/users",
@@ -24,6 +32,16 @@ def create_user(
 
 from typing import List
 
+@router.post(
+    "/login",
+    response_model=Token
+)
+def login_user(
+    login_data: UserLogin,
+    db: Session = Depends(get_db)
+):
+    return UserService.login_user(db, login_data)
+
 @router.get(
     "/",
     response_model=List[UserResponse]
@@ -39,8 +57,16 @@ def get_all_users(
 )
 def get_user_by_id(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
 ):
+
+    if user_id != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to access this user."
+        )
+
     return UserService.get_user_by_id(db, user_id)
 
 @router.put(
@@ -60,3 +86,4 @@ def delete_user(
     db: Session = Depends(get_db)
 ):
     return UserService.delete_user(db, user_id)
+
