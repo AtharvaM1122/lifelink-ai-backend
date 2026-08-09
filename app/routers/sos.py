@@ -34,7 +34,7 @@ def create_sos(
 
 @router.get(
     "/my-active",
-    response_model=SOSResponse
+    response_model=SOSResponse | None
 )
 def get_my_active_sos(
     db: Session = Depends(get_db),
