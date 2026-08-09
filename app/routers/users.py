@@ -10,7 +10,7 @@ from app.schemas.user import (
     Token
 )
 from app.services.user_service import UserService
-from app.security.dependencies import get_current_user_id
+from app.security.dependencies import get_current_user
 from fastapi import APIRouter, Depends, status, HTTPException
 
 router = APIRouter(
@@ -58,16 +58,16 @@ def get_all_users(
 def get_user_by_id(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user_id: int = Depends(get_current_user_id)
+    current_user = Depends(get_current_user)
 ):
 
-    if user_id != current_user_id:
+    if user_id != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not allowed to access this user."
         )
 
-    return UserService.get_user_by_id(db, user_id)
+    return current_user
 
 @router.put(
     "/{user_id}",
