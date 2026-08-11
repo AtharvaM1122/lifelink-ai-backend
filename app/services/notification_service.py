@@ -25,7 +25,8 @@ class NotificationService:
         db: Session,
         user_id: int,
         response_id: int,
-        notification_data: NotificationCreate
+        notification_data: NotificationCreate,
+        commit: bool = True
     ):
 
         # Find emergency response
@@ -84,7 +85,8 @@ class NotificationService:
 
         return NotificationRepository.create(
             db,
-            new_notification
+            new_notification,
+            commit=commit
         )
 
     @staticmethod
