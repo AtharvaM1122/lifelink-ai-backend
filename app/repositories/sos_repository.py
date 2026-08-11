@@ -6,10 +6,18 @@ from app.models.sos import SOS
 class SOSRepository:
 
     @staticmethod
-    def create(db: Session, sos: SOS):
+    def create(
+        db: Session,
+        sos: SOS,
+        commit: bool = True
+    ):
         db.add(sos)
-        db.commit()
-        db.refresh(sos)
+
+        if commit:
+            db.commit()
+            db.refresh(sos)
+        else:
+            db.flush()
 
         return sos
 

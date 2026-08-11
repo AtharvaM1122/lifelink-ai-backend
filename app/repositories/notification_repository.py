@@ -8,11 +8,16 @@ class NotificationRepository:
     @staticmethod
     def create(
         db: Session,
-        notification: Notification
+        notification: Notification,
+        commit: bool = True
     ):
         db.add(notification)
-        db.commit()
-        db.refresh(notification)
+
+        if commit:
+            db.commit()
+            db.refresh(notification)
+        else:
+            db.flush()
 
         return notification
 

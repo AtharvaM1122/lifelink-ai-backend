@@ -8,11 +8,16 @@ class EmergencyResponseRepository:
     @staticmethod
     def create(
         db: Session,
-        response: EmergencyResponse
+        response: EmergencyResponse,
+        commit: bool = True
     ):
         db.add(response)
-        db.commit()
-        db.refresh(response)
+
+        if commit:
+            db.commit()
+            db.refresh(response)
+        else:
+            db.flush()
 
         return response
 

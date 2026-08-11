@@ -13,7 +13,8 @@ class SOSService:
     def create_sos(
         db: Session,
         user_id: int,
-        sos_data: SOSCreate
+        sos_data: SOSCreate,
+        commit: bool = True
     ):
 
         # Check if user already has an active SOS
@@ -39,7 +40,8 @@ class SOSService:
 
         return SOSRepository.create(
             db,
-            new_sos
+            new_sos,
+            commit=commit
         )
 
     @staticmethod

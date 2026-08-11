@@ -22,7 +22,8 @@ class EmergencyResponseService:
     def create_response(
         db: Session,
         user_id: int,
-        response_data: EmergencyResponseCreate
+        response_data: EmergencyResponseCreate,
+        commit: bool = True
     ):
 
         # Find the SOS
@@ -74,7 +75,8 @@ class EmergencyResponseService:
 
         return EmergencyResponseRepository.create(
             db,
-            new_response
+            new_response,
+            commit=commit
         )
 
     @staticmethod
