@@ -18,6 +18,7 @@ from app.routers.notifications import (
 from app.routers.emergency_orchestration import (
     router as emergency_orchestration_router
 )
+from app.routers.medical_records import router as medical_records_router
 
 app = FastAPI(title="LifeLink AI API")
 
@@ -30,6 +31,7 @@ app.include_router(emergency_contact_router)
 app.include_router(emergency_response_router)
 app.include_router(notification_router)
 app.include_router(emergency_orchestration_router)
+app.include_router(medical_records_router)
 
 
 @app.get("/")
