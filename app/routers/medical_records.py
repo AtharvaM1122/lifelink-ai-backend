@@ -32,6 +32,7 @@ from app.utils.file_storage import (
 from app.models.medical_record import MedicalRecord
 
 from app.security.dependencies import get_current_user
+from app.services.ocr_service import OCRService
 
 
 router = APIRouter(
@@ -155,3 +156,44 @@ def get_medical_record_file(
         media_type=record.file_type,
         filename=record.file_name
     )
+
+@router.post(
+    "/record/{record_id}/process-ocr",
+    response_model=MedicalRecordResponse
+)
+def process_medical_record_ocr(
+    record_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+
+    record = MedicalRecordService.get_record(
+        db,
+        current_user.user_id,
+        record_id
+    )
+
+    try:
+        text = OCRService.extract_text(
+            record.file_path,
+            record.file_type
+        )
+
+    except FileNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error)
+        )
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error)
+        )
+
+    record.ocr_text = text
+
+    db.commit()
+    db.refresh(record)
+
+    return record
