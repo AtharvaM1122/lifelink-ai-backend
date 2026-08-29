@@ -1,6 +1,5 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
 
 from app.models.notification import Notification
 
@@ -13,8 +12,15 @@ from app.repositories.emergency_response_repository import (
 )
 
 from app.schemas.notification import (
-    NotificationCreate,
-    NotificationUpdate
+    NotificationCreate
+)
+
+from app.repositories.emergency_contact_repository import (
+    EmergencyContactRepository
+)
+
+from app.repositories.hospital_repository import (
+    HospitalRepository
 )
 
 
@@ -59,6 +65,63 @@ class NotificationService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid recipient type."
             )
+
+        # Validate recipient
+
+        if notification_data.recipient_type == "EMERGENCY_CONTACT":
+
+            if notification_data.recipient_id is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Emergency contact recipient ID is required."
+                )
+
+            contact = EmergencyContactRepository.get_by_id(
+                db,
+                notification_data.recipient_id
+            )
+
+            if not contact:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Emergency contact not found."
+                )
+
+            # Ensure contact belongs to the emergency user
+            if contact.user_id != user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=(
+                        "You are not allowed to send a notification "
+                        "to this emergency contact."
+                    )
+                )
+
+
+        elif notification_data.recipient_type == "HOSPITAL":
+
+            if notification_data.recipient_id is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Hospital recipient ID is required."
+                )
+
+            hospital = HospitalRepository.get_by_id(
+                db,
+                notification_data.recipient_id
+            )
+
+            if not hospital:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Hospital not found."
+                )
+
+            if hospital.status != "ACTIVE":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Hospital is not active."
+                )
 
         # Validate channel
         allowed_channels = [
@@ -158,61 +221,4 @@ class NotificationService:
             response_id
         )
 
-    @staticmethod
-    def update_notification_status(
-        db: Session,
-        user_id: int,
-        notification_id: int,
-        notification_data: NotificationUpdate
-    ):
-
-        notification = NotificationRepository.get_by_id(
-            db,
-            notification_id
-        )
-
-        if not notification:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Notification not found."
-            )
-
-        # Ownership check
-        if notification.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are not allowed to update this notification."
-            )
-
-        allowed_transitions = {
-            "PENDING": ["SENT", "FAILED"],
-            "SENT": ["DELIVERED"],
-            "DELIVERED": [],
-            "FAILED": []
-        }
-
-        current_status = notification.status
-        new_status = notification_data.status
-
-        if new_status not in allowed_transitions.get(
-            current_status,
-            []
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    f"Invalid notification status transition: "
-                    f"{current_status} → {new_status}."
-                )
-            )
-
-        notification.status = new_status
-
-        # Record the time when notification was sent
-        if new_status == "SENT":
-            notification.sent_at = datetime.now(timezone.utc)
-
-        return NotificationRepository.update(
-            db,
-            notification
-        )
+    

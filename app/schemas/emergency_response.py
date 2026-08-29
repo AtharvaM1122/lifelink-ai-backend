@@ -9,14 +9,6 @@ from pydantic import BaseModel
 class EmergencyResponseCreate(BaseModel):
     sos_id: int
 
-
-# ==========================
-# Emergency Response Update
-# ==========================
-class EmergencyResponseUpdate(BaseModel):
-    status: str
-
-
 # ==========================
 # Emergency Response
 # Response Model

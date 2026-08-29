@@ -2,7 +2,6 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.emergency_response import EmergencyResponse
-from app.models.sos import SOS
 
 from app.repositories.emergency_response_repository import (
     EmergencyResponseRepository
@@ -12,7 +11,6 @@ from app.repositories.sos_repository import SOSRepository
 
 from app.schemas.emergency_response import (
     EmergencyResponseCreate,
-    EmergencyResponseUpdate
 )
 
 
@@ -117,66 +115,4 @@ class EmergencyResponseService:
             user_id
         )
 
-    @staticmethod
-    def update_response_status(
-        db: Session,
-        user_id: int,
-        response_id: int,
-        response_data: EmergencyResponseUpdate
-    ):
-
-        response = EmergencyResponseRepository.get_by_id(
-            db,
-            response_id
-        )
-
-        if not response:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Emergency response not found."
-            )
-
-        # Make sure response belongs to current user
-        if response.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are not allowed to update this response."
-            )
-
-        allowed_transitions = {
-            "INITIATED": ["IN_PROGRESS"],
-            "IN_PROGRESS": ["COMPLETED"],
-            "COMPLETED": []
-        }
-
-        current_status = response.status
-        new_status = response_data.status
-
-        if new_status not in allowed_transitions[current_status]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    f"Invalid status transition: "
-                    f"{current_status} → {new_status}."
-                )
-            )
-
-        # Update response status
-        response.status = new_status
-
-        # If emergency response is completed,
-        # resolve the associated SOS
-        if new_status == "COMPLETED":
-
-            sos = SOSRepository.get_by_id(
-                db,
-                response.sos_id
-            )
-
-            if sos and sos.status == "ACTIVE":
-                sos.status = "RESOLVED"
-
-        return EmergencyResponseRepository.update(
-            db,
-            response
-        )
+    
