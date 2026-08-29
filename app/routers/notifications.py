@@ -8,8 +8,7 @@ from app.models.users import User
 
 from app.schemas.notification import (
     NotificationCreate,
-    NotificationResponse,
-    NotificationUpdate
+    NotificationResponse
 )
 
 from app.services.notification_service import (
@@ -94,20 +93,3 @@ def get_response_notifications(
     )
 
 
-@router.put(
-    "/{notification_id}",
-    response_model=NotificationResponse
-)
-def update_notification_status(
-    notification_id: int,
-    notification_data: NotificationUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-
-    return NotificationService.update_notification_status(
-        db,
-        current_user.user_id,
-        notification_id,
-        notification_data
-    )

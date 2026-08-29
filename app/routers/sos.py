@@ -46,18 +46,3 @@ def get_my_active_sos(
         current_user.user_id
     )
 
-@router.put(
-    "/{sos_id}/resolve",
-    response_model=SOSResponse
-)
-def resolve_sos(
-    sos_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-
-    return SOSService.resolve_sos(
-        db,
-        current_user.user_id,
-        sos_id
-    )

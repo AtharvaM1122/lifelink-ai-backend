@@ -7,8 +7,7 @@ from app.database.session import get_db
 from app.models.users import User
 from app.schemas.emergency_response import (
     EmergencyResponseCreate,
-    EmergencyResponseResponse,
-    EmergencyResponseUpdate
+    EmergencyResponseResponse
 )
 from app.services.emergency_response_service import (
     EmergencyResponseService
@@ -72,20 +71,3 @@ def get_user_responses(
     )
 
 
-@router.put(
-    "/{response_id}",
-    response_model=EmergencyResponseResponse
-)
-def update_response(
-    response_id: int,
-    response_data: EmergencyResponseUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-
-    return EmergencyResponseService.update_response_status(
-        db,
-        current_user.user_id,
-        response_id,
-        response_data
-    )

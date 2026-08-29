@@ -131,11 +131,7 @@ class UserService:
         access_token = create_access_token(
             data={
                 "sub": str(user.user_id),
-                "email": user.email
+                "email": user.email,
+                "role": "USER"
             }
         )
-
-        return {
-            "access_token": access_token,
-            "token_type": "bearer"
-        }

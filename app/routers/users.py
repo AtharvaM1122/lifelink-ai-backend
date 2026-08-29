@@ -1,4 +1,9 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    status,
+    HTTPException
+)
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -11,7 +16,7 @@ from app.schemas.user import (
 )
 from app.services.user_service import UserService
 from app.security.dependencies import get_current_user
-from fastapi import APIRouter, Depends, status, HTTPException
+from typing import List
 
 router = APIRouter(
     prefix="/users",
@@ -30,7 +35,6 @@ def create_user(
 ):
     return UserService.create_user(db, user)
 
-from typing import List
 
 @router.post(
     "/login",
@@ -42,14 +46,6 @@ def login_user(
 ):
     return UserService.login_user(db, login_data)
 
-@router.get(
-    "/",
-    response_model=List[UserResponse]
-)
-def get_all_users(
-    db: Session = Depends(get_db)
-):
-    return UserService.get_all_users(db)
 
 @router.get(
     "/{user_id}",
@@ -76,14 +72,38 @@ def get_user_by_id(
 def update_user(
     user_id: int,
     user: UserUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
 ):
-    return UserService.update_user(db, user_id, user)
 
-@router.delete("/{user_id}")
+    if user_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to update this user."
+        )
+
+    return UserService.update_user(
+        db,
+        user_id,
+        user
+    )
+
+@router.delete(
+    "/{user_id}"
+)
 def delete_user(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
 ):
-    return UserService.delete_user(db, user_id)
 
+    if user_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to delete this user."
+        )
+
+    return UserService.delete_user(
+        db,
+        user_id
+    )
