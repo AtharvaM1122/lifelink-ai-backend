@@ -77,15 +77,7 @@ def get_current_hospital(
             }
         )
 
-    # Verify that this is a user token
-    role = payload.get("role")
-
-    if role != "USER":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User access required."
-        )
-
+    
     # Verify that this is a hospital token
     role = payload.get("role")
 
