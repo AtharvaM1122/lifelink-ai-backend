@@ -71,12 +71,17 @@ def analyze_health(
         request.user_id
     )
 
+    analysis_result = AIIntegrationService.analyze_patient_context(
+        patient_context=patient_context,
+        emergency_description=request.emergency_description
+    )
+
     return {
         "user_id": request.user_id,
         "readiness_score": readiness_score,
-        "ai_health_summary": None,
-        "emergency_understanding": None,
-        "severity": None,
-        "required_medical_capability": None,
-        "emergency_report": None
+        "ai_health_summary": analysis_result.get("ai_health_summary"),
+        "emergency_understanding": analysis_result.get("emergency_understanding"),
+        "severity": analysis_result.get("severity"),
+        "required_medical_capability": analysis_result.get("required_medical_capability"),
+        "emergency_report": analysis_result.get("emergency_report")
     }
