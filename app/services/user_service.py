@@ -135,3 +135,7 @@ class UserService:
                 "role": "USER"
             }
         )
+        return {
+            "access_token": access_token,
+            "token_type": "bearer"
+        }

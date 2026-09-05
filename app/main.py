@@ -25,6 +25,7 @@ from app.routers.hospitals import (
 from app.routers.hospital_emergency_assignments import (
     router as hospital_emergency_assignment_router
 )
+from app.ai.router import router as ai_router
 
 app = FastAPI(title="LifeLink AI API")
 
@@ -42,6 +43,7 @@ app.include_router(hospital_router)
 app.include_router(
     hospital_emergency_assignment_router
 )
+app.include_router(ai_router)
 
 @app.get("/")
 def root():
