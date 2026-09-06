@@ -52,6 +52,71 @@ class HospitalRepository:
         )
 
     @staticmethod
+    def find_matching_hospitals(
+        db: Session,
+        required_capability: str = None
+    ):
+        import re
+        from app.models.hospital_capability import HospitalCapability
+        from sqlalchemy import or_
+
+        query = (
+            db.query(Hospital)
+            .filter(
+                Hospital.status == "ACTIVE",
+                Hospital.emergency_available == True
+            )
+        )
+
+        STOP_WORDS = {
+            "unit", "care", "general", "department", "hospital", "emergency",
+            "transport", "dispatch", "immediate", "personnel", "with", "facility",
+            "services", "system", "response", "medical", "level", "type", "status",
+            "required", "capabilities", "needs", "patient", "trained", "support",
+            "life", "advanced", "rapid", "acls"
+        }
+
+        if required_capability:
+            raw_parts = re.split(r'[,&/]| \band\b ', required_capability, flags=re.IGNORECASE)
+            terms = set()
+            for part in raw_parts:
+                cleaned = part.strip()
+                if cleaned and cleaned.lower() not in STOP_WORDS:
+                    # Check individual words
+                    words = [w for w in cleaned.split() if len(w) > 2 and w.lower() not in STOP_WORDS]
+                    if words:
+                        for w in words:
+                            terms.add(w)
+
+            if terms:
+                ilike_conditions = [
+                    HospitalCapability.service_name.ilike(f"%{term}%")
+                    for term in terms
+                ]
+                query = query.join(
+                    HospitalCapability,
+                    Hospital.hospital_id == HospitalCapability.hospital_id
+                ).filter(
+                    HospitalCapability.is_available == True,
+                    or_(*ilike_conditions)
+                )
+
+        return query.distinct().all()
+
+    @staticmethod
+    def get_active_emergency_hospitals(
+        db: Session
+    ):
+        return (
+            db.query(Hospital)
+            .filter(
+                Hospital.status == "ACTIVE",
+                Hospital.emergency_available == True
+            )
+            .all()
+        )
+
+    @staticmethod
     def update(
         db: Session,
         hospital: Hospital

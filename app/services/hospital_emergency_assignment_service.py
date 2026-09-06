@@ -36,7 +36,8 @@ class HospitalEmergencyAssignmentService:
     @staticmethod
     def create_assignment(
         db: Session,
-        assignment_data: HospitalEmergencyAssignmentCreate
+        assignment_data: HospitalEmergencyAssignmentCreate,
+        commit: bool = True
     ):
 
         # Check if emergency response exists
@@ -103,7 +104,8 @@ class HospitalEmergencyAssignmentService:
         return (
             HospitalEmergencyAssignmentRepository.create(
                 db,
-                new_assignment
+                new_assignment,
+                commit=commit
             )
         )
 
