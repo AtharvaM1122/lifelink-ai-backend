@@ -6,6 +6,7 @@ from sqlalchemy import (
     Boolean,
     TIMESTAMP
 )
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database.base import Base
@@ -78,4 +79,10 @@ class Hospital(Base):
         TIMESTAMP(timezone=True),
         server_default=func.now(),
         onupdate=func.now()
+    )
+
+    capabilities = relationship(
+        "HospitalCapability",
+        back_populates="hospital",
+        cascade="all, delete-orphan"
     )

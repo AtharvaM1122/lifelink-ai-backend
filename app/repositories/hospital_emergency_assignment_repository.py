@@ -10,11 +10,13 @@ class HospitalEmergencyAssignmentRepository:
     @staticmethod
     def create(
         db: Session,
-        assignment: HospitalEmergencyAssignment
+        assignment: HospitalEmergencyAssignment,
+        commit: bool = True
     ):
         db.add(assignment)
-        db.commit()
-        db.refresh(assignment)
+        if commit:
+            db.commit()
+            db.refresh(assignment)
 
         return assignment
 

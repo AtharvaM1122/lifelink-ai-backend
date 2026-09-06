@@ -25,6 +25,9 @@ from app.routers.medical_records import router as medical_records_router
 from app.routers.hospitals import (
     router as hospital_router
 )
+from app.routers.hospital_capabilities import (
+    router as hospital_capabilities_router
+)
 from app.routers.hospital_emergency_assignments import (
     router as hospital_emergency_assignment_router
 )
@@ -42,6 +45,7 @@ app.include_router(emergency_response_router)
 app.include_router(notification_router)
 app.include_router(emergency_orchestration_router)
 app.include_router(medical_records_router)
+app.include_router(hospital_capabilities_router)
 app.include_router(hospital_router)
 app.include_router(
     hospital_emergency_assignment_router
